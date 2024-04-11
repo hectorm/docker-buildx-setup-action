@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: "Set up Docker Buildx"
+description: "Set up Docker Buildx"
+inputs:
+  qemu-binfmt-register-image:
+    description: "QEMU binfmt register image"
+    required: false
+    default: "docker.io/hectorm/qemu-user-static:latest"
+  qemu-binfmt-register-args:
+    description: "QEMU binfmt register arguments"
+    required: false
+    default: "--reset --persistent yes --credential yes"
+runs:
+  using: "composite"
+  steps:
+    - shell: "bash"
+      env:
+        QEMU_BINFMT_REGISTER_IMAGE: "${{ inputs.qemu-binfmt-register-image }}"
+        QEMU_BINFMT_REGISTER_ARGS: "${{ inputs.qemu-binfmt-register-args }}"
+      run: |
+        docker run --rm --privileged "${QEMU_BINFMT_REGISTER_IMAGE:?}" ${QEMU_BINFMT_REGISTER_ARGS?}
+    - shell: "bash"
+      run: |
+        docker context create ci
+        docker buildx create ci --name builder --bootstrap --use
